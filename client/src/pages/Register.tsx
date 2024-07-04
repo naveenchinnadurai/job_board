@@ -22,7 +22,6 @@ const registerFormSchema = z.object({
 })
 
 export default function Register() {
-  const { navigate, setIsLoggedIn } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
 
   const registerForm = useForm<z.infer<typeof registerFormSchema>>({
@@ -51,9 +50,7 @@ export default function Register() {
       const { accessToken, refreshToken } = res.data
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
-      sessionStorage.setItem('user', JSON.stringify(res?.data.user))
       console.log(userType)
-      setIsLoggedIn(true)
       if (userType === "employee") {
         navigate('/onboarding/employee')
       } else {

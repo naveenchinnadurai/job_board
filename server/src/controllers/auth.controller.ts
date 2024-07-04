@@ -36,10 +36,10 @@ export const register = async (req: Request, res: Response) => {
   const hashedPassword = await hashPassword(password);
 
   let newUser;
-  let type:string;
+  let type: string;
   try {
     if (userType === "employer") {
-      type="employer";
+      type = "employer";
       [newUser] = await db
         .insert(employer)
         .values({
@@ -52,7 +52,7 @@ export const register = async (req: Request, res: Response) => {
         })
         .returning();
     } else {
-      type="employee";
+      type = "employee";
       [newUser] = await db
         .insert(employee)
         .values({
@@ -90,7 +90,7 @@ export const register = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error registering user:", error);
-    res.status(500).json({ isSuccess:false, message: "Failed to register user" });
+    res.status(500).json({ isSuccess: false, message: "Failed to register user" });
   }
 };
 

@@ -29,7 +29,7 @@ export default function Login() {
     defaultValues: {
       email: '',
       password: '',
-    },
+    }
   })
 
   async function onSubmit(values: LoginFormValues) {
@@ -37,7 +37,11 @@ export default function Login() {
     try {
       await login(values.email, values.password)
       console.log('Logged in successfully')
-      navigate('/dashboard/employer')
+      if (type === "employee") {
+        navigate('/dashboard/employee')
+      } else if (type === "employer") {
+        navigate('/dashboard/employer')
+      }
     } catch (error) {
       console.error('Login error:', error)
       console.log('Failed to log in. Please check your credentials.')

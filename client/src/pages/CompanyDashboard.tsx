@@ -2,8 +2,8 @@ import { Button } from '../components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog'
 import { Plus } from 'lucide-react'
 import { DialogDescription } from '@radix-ui/react-dialog'
-import ProfileCard from '../components/profileCard'
 import JobForm from '../components/employer/jobForm'
+import ProfileCard from '../components/profileCard'
 
 export default function CompanyDashboard() {
   return (

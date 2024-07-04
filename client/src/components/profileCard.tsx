@@ -18,7 +18,7 @@ function ProfileCard() {
             <div className='flex flex-col sm:flex-row  gap-8'>
                 <div className='flex-none w-full sm:w-64'>
                     <div className='relative flex h-[250px] w-full items-center justify-center overflow-hidden rounded-lg border bg-background p-20 md:shadow-xl'>
-                        <p className='z-10 whitespace-pre-wrap text-center text-3xl font-bold tracking-normal text-black dark:text-white'>{data.name} </p>
+                        <p className='z-10 whitespace-pre-wrap text-center text-3xl font-bold tracking-normal text-black dark:text-white'>{user?.name} </p>
                         <DotPattern width={25} height={25} cx={1} cy={1} cr={1} className={cn('[mask-image:linear-gradient(to_bottom,transparent,white,transparent)]')} />
                     </div>
                 </div>
