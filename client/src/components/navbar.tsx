@@ -9,7 +9,7 @@ import { ChevronDown, ChevronUp, LogOut } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 
 export default function Navbar() {
-  const {user}=useAuth()
+  const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   return (
     <>
@@ -39,7 +39,7 @@ export default function Navbar() {
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <LogOut className='mr-2 h-4 w-4' />
-                  <span>Sign Out</span>
+                  <span onClick={logout}>Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>

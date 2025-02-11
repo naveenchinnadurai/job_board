@@ -3,7 +3,7 @@ import { z } from "zod"
 const optionSchema = z.object({
     label: z.string(),
     value: z.string(),
-    disable: z.boolean().optional(),
+    disable: z.boolean().optional()
 })
 
 export const jobFormSchema = z.object({
@@ -13,6 +13,6 @@ export const jobFormSchema = z.object({
     salary: z.string().regex(/^[0-9]{1,14}$/, { message: 'Salary is required' }),
     qualifications: z.array(optionSchema).min(1, { message: 'Qualification is required' }),
     experience: z.string().regex(/^[0-9]{1,14}$/, { message: 'Experience is required' }),
-    sector: z.enum(['IT', 'Mechanical', 'Finance', 'Education', 'HealthCare'], { required_error: 'Please select a job sector.' }),
+    sector: z.enum(['Information Technology', 'Mechanical', 'Finance', 'Education', 'HealthCare'], { required_error: 'Please select a job sector.' }),
 })
 

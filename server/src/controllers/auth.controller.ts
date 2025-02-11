@@ -5,31 +5,28 @@ import { eq } from "drizzle-orm";
 import { comparePasswords, createOrUpdateSession, hashPassword, refreshAccessToken } from "../services/auth.service";
 
 export const register = async (req: Request, res: Response) => {
-  const { name, email, password, userType, mobileNumber, location } = req.body;
+  const { name, email, password, userType, mobileNumber, location, industry, jobTitle, resume } = req.body;
 
-  const { industry } = req.body;
-  const { jobTitle, resume } = req.body;
-
-  // Check if user already exists
   let existingUser;
-  if (userType === "employer") {
-    existingUser = await db
-      .select()
-      .from(employer)
-      .where(eq(employer.email, email))
-      .limit(1);
-  } else if (userType === "employee") {
-    existingUser = await db
-      .select()
-      .from(employee)
-      .where(eq(employee.email, email))
-      .limit(1);
-  } else {
-    return res.json({ isSuccess: false, message: "Invalid user type" });
-  }
+
+  existingUser = await db
+    .select()
+    .from(employer)
+    .where(eq(employer.email, email))
+    .limit(1);
 
   if (existingUser && existingUser.length > 0) {
-    return res.json({ isSuccess: false, message: "User already exists" });
+    return res.json({ isSuccess: false, message: "User already Registered as Employer" })
+  }
+
+  existingUser = await db
+    .select()
+    .from(employee)
+    .where(eq(employee.email, email))
+    .limit(1);
+
+  if (existingUser && existingUser.length > 0) {
+    return res.json({ isSuccess: false, message: "User already Registered as Employee" })
   }
 
   // Hash the password
@@ -96,6 +93,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  console.log({ email, password })
 
   let user;
   let userType: "employer" | "employee";
@@ -111,16 +109,20 @@ export const login = async (req: Request, res: Response) => {
     .from(employee)
     .where(eq(employee.email, email))
     .limit(1);
-
+  let sector = null;
   if (employerUser.length > 0) {
     userType = "employer";
     user = employerUser;
+    sector = employerUser[0].industry
   } else if (employeeUser.length > 0) {
     userType = "employee";
     user = employeeUser;
+    sector = employeeUser[0].jobTitle
   } else {
     return res.status(400).json({ error: "User not found" });
   }
+
+  console.log(user)
 
   if (!user || user.length === 0) {
     return res.status(400).json({ error: "User not found" });
@@ -146,9 +148,10 @@ export const login = async (req: Request, res: Response) => {
     name: user[0].name,
     location: user[0].location,
     mobileNumber: user[0].mobileNumber,
+    sector: sector
   };
 
-  res.json({ accessToken, refreshToken, userResponse });
+  res.json({ accessToken, refreshToken, userInfo: userResponse });
 };
 
 export const refreshToken = async (req: Request, res: Response) => {

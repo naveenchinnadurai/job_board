@@ -1,53 +1,67 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
-
-interface User {
-  id: string
-  name: string
-  email: string
-  type: 'employee' | 'employer'
-  location: string | null
-  mobileNumber: string | null
-}
+import { JobType, User } from '../lib/types';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
-  user: User | null
-  accessToken: string | null
-  refreshToken: string | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  refreshAccessToken: () => Promise<void>
+  user: User | null;
+  tokens: TokenInterface | null;
+  jobs: JobType[] | undefined;
+  setJobs: React.Dispatch<React.SetStateAction<JobType[] | undefined>>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshAccessToken: () => Promise<void>;
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+interface TokenInterface {
+  accessToken: string | null,
+  refreshToken: string | null
+}
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(
-    localStorage.getItem('accessToken'),
-  )
-  const [refreshToken, setRefreshToken] = useState<string | null>(
-    localStorage.getItem('refreshToken'),
-  )
+  const [jobs, setJobs] = useState<JobType[]>()
+  const [tokens, setTokens] = useState<TokenInterface>({
+    accessToken: "",
+    refreshToken: ""
+  })
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/v1/auth/login',
-        {
-          email,
-          password,
-        },
-      )
-      const { accessToken, refreshToken, userResponse } = response.data
-      setUser(userResponse)
-      setAccessToken(accessToken)
-      setRefreshToken(refreshToken)
-      localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
-      sessionStorage.setItem('user', JSON.stringify(userResponse))
+      const response = await axios.post('http://localhost:5000/api/v1/auth/login', {
+        email,
+        password,
+      })
+      const { accessToken, refreshToken, userInfo } = response.data
+      console.log(response.data)
+      setIsLoggedIn(true)
+      setTokens({
+        accessToken,
+        refreshToken
+      })
+      const currUser: User = {
+        id: userInfo.id,
+        email: userInfo.email,
+        type: userInfo.type,
+        name: userInfo.name,
+        location: userInfo.location,
+        mobileNumber: userInfo.mobileNumber,
+        sector: userInfo.sector
+      }
+
+      localStorage.setItem('user', JSON.stringify(currUser))
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('tokens', JSON.stringify({ accessToken, refreshToken }))
+      
+      getJobs(userInfo.id);
+
+      if (userInfo.type === "employee") navigate('dashboard/employee')
+      else if (userInfo.type === "employer") navigate('/dashboard/employer')
+
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -57,14 +71,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       if (user) {
-        await axios.post('/api/v1/auth/logout', { sessionId: user.id })
+        await axios.post('http://localhost:5000/api/v1/auth/logout', { sessionId: user.id })
       }
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
       setUser(null)
-      setAccessToken(null)
-      setRefreshToken(null)
+      setTokens({
+        accessToken: null,
+        refreshToken: null
+      })
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     }
@@ -73,12 +89,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const refreshAccessToken = async () => {
     try {
       const response = await axios.post('/api/v1/auth/refresh-token', {
-        refreshToken,
+        refreshToken: tokens.refreshToken
       })
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         response.data
-      setAccessToken(newAccessToken)
-      setRefreshToken(newRefreshToken)
+      setTokens({
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken
+      })
       localStorage.setItem('accessToken', newAccessToken)
       localStorage.setItem('refreshToken', newRefreshToken)
     } catch (error) {
@@ -87,12 +105,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
+
+  const getJobs = async (id:string) => {
+    if (user?.type == "employee") {
+      try {
+        const response = await axios.get('http://localhost:5000/api/v1/job',)
+        setJobs(response.data);
+        console.log(response.data)
+      } catch (error: any) {
+        console.log("error")
+      }
+    } else {
+      try {
+        console.log(user?.id)
+        const response = await axios.get(`http://localhost:5000/api/v1/job/${id}`,)
+        setJobs(response.data);
+        console.log(response.data)
+      } catch (error: any) {
+        console.log("error")
+      }
+    }
+  }
+
   useEffect(() => {
     const fetchUser = async () => {
-      if (accessToken) {
+      if (tokens.accessToken) {
         try {
           const response = await axios.get('/api/v1/auth/me', {
-            headers: { Authorization: `Bearer ${accessToken}` },
+            headers: { Authorization: `Bearer ${tokens.accessToken}` },
           })
           setUser(response.data)
         } catch (error) {
@@ -103,10 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     fetchUser()
-  }, [accessToken])
+  }, [tokens.accessToken])
 
   useEffect(() => {
-    if (accessToken) {
+    if (tokens.accessToken) {
       const refreshInterval = setInterval(
         () => {
           refreshAccessToken()
@@ -116,18 +156,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return () => clearInterval(refreshInterval)
     }
-  }, [accessToken])
+  }, [tokens.accessToken])
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        accessToken,
-        refreshToken,
-        login,
-        logout,
-        refreshAccessToken,
-      }}>
+    <AuthContext.Provider value={{ user, setIsLoggedIn, tokens, login, logout, refreshAccessToken, jobs, setJobs }}>
       {children}
     </AuthContext.Provider>
   )
@@ -139,4 +171,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
-} 
+}

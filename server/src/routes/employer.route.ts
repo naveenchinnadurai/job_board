@@ -15,7 +15,7 @@ router.post("/register", registerEmployer);
 
 // Protected routes
 router.get("/profile", authenticateToken, getEmployerProfile);
-router.put("/profile", authenticateToken, updateEmployerProfile);
+router.put("/profile", updateEmployerProfile);
 router.get("/jobs/:jobId/applications", authenticateToken, getJobApplications);
 router.get("/jobs/count", authenticateToken, getAllJobsWithApplicationCounts);
 

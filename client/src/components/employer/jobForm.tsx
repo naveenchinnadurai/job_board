@@ -9,10 +9,19 @@ import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
 import { jobFormSchema } from '../../schema/jobSchema'
 import { DialogClose } from '../ui/dialog'
-import { useAuth } from '../../auth/AuthContext'
+import api from '../../lib/api'
 
-function JobForm() {
-    const { user } = useAuth();
+interface FormProp {
+    description: string | undefined;
+    experience: string | undefined,
+    location: string | undefined,
+    salary: string | undefined,
+    sector: "Information Technology" | "Mechanical" | "Finance" | "Education" | "HealthCare" | undefined,
+    title: string | undefined
+}
+
+
+function JobForm(props: FormProp) {
 
     const QUALIFICATION: Option[] = [
         { label: 'BE', value: 'BE' },
@@ -26,31 +35,33 @@ function JobForm() {
     const jobForm = useForm<z.infer<typeof jobFormSchema>>({
         resolver: zodResolver(jobFormSchema),
         defaultValues: {
-            description: '',
-            experience: '',
-            location: '',
+            description: props.description,
+            experience: props.experience,
+            location: props.location,
             qualifications: [],
-            salary: '',
-            sector: undefined,
-            title: '',
+            salary: props.salary,
+            sector: props.sector,
+            title: props.title,
         },
     })
 
     async function jobOnSubmit(values: z.infer<typeof jobFormSchema>) {
         console.log(values)
-        try {
-            let jobValues = {
-                title: values.title,
-                companyName:user?.name,
-                experience: values.experience,
-                description: values.description,
-                industry: values.sector,
-                stipend: values.salary,
-                qualification: values.qualifications.map(e => e.value)
-            }
-            console.log(jobValues)
-        } catch (err) {
-            console.log(err)
+        const { title, description, location, experience, salary, qualifications } = values
+        const job = {
+            title,
+            description,
+            location,
+            experience,
+            salary,
+            industry: values.sector,
+            qualification:qualifications
+        }
+        try{
+            const res=await api.post('job/',job)
+            console.log(res)
+        }catch (error){
+            console.log(error)
         }
     }
     return (
@@ -189,7 +200,7 @@ function JobForm() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value='IT'>Information Technology</SelectItem>
+                                                    <SelectItem value='Information Technology'>Information Technology</SelectItem>
                                                     <SelectItem value='Mechanical'>Mechanical</SelectItem>
                                                     <SelectItem value='Finance'>Finance</SelectItem>
                                                     <SelectItem value='Education'>Education</SelectItem>

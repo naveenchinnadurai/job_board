@@ -7,42 +7,12 @@ import { Button } from '../components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form'
 import { Input } from '../components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
-import api from '../lib/api'
-import { User, useAuth } from '../auth/AuthContext'
-
-const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
-const ACCEPTED_FILE_TYPES = [
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]
+import { employeeFormSchema } from '../schema/employeeSchema'
+import api from '../lib/api';
+import { useNavigate } from 'react-router-dom'
 
 export default function EmployeeOnBoarding() {
-  const { setType, navigate } = useAuth()
-  const employeeFormSchema = z.object({
-    name: z.string().min(1, { message: 'Employee name cannot be empty' }),
-    jobTitle: z.enum(
-      [
-        'Software Engineer',
-        'Full Stack Developer',
-        'Business Analyst',
-        'Professor',
-        'Doctor',
-        'MechanicalEngineer',
-      ],
-      {
-        required_error: 'Please select a job title.',
-      },
-    ),
-    mobileNumber: z.string().regex(/^[0-9]{10}$/, { message: 'Invalid mobile number' }),
-    location: z.string().min(1, { message: 'Location is required' }),
-    resume: z.any().refine((files) => files?.length == 1, 'Please attach your resume.').refine(
-      (files) => files?.[0]?.size <= MAX_FILE_SIZE,
-      `Max file size is 2MB.`,
-    ).refine(
-      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
-      'Only .pdf and .docx files are accepted.',
-    ),
-  })
+  const navigate = useNavigate()
 
   const employeeForm = useForm<z.infer<typeof employeeFormSchema>>({
     resolver: zodResolver(employeeFormSchema),
@@ -57,30 +27,37 @@ export default function EmployeeOnBoarding() {
 
   async function onSubmit(values: z.infer<typeof employeeFormSchema>) {
     console.log(values)
-    const res = await api.put('/employee/profile', {
-      name: values.name,
-      jobTitle: values.jobTitle,
-      location: values.location,
-      mobileNumber: values.mobileNumber
-    })
-    console.log(res)
-    let info: any = sessionStorage.getItem('user')
-    let data: User = JSON.parse(info)
-    const user = {
-      id: data.id,
-      name: values.name,
-      email: data.email,
-      type: data.type,
-      location: data.location,
-      sector: data.sector,
-      mobileNumber: data.mobileNumber
-    }
-    setType(data.type)
-    sessionStorage.setItem('user', JSON.stringify(user))
-    if (data.type === "employee") {
-      navigate('/dashboard/employer')
-    } else {
+    const { name, mobileNumber, location, jobTitle } = values
+    let user=JSON.parse(localStorage.getItem("user") || '{}')
+    try {
+      const res = await api.put('http://localhost:5000/api/v1/employee/profile', {
+        employeeId: user.id,
+        location,
+        mobileNumber,
+        name,
+        jobTitle: jobTitle
+      })
+      console.log(res)
+      if (!res.data.isSuccess) {
+        console.log(res.data.message)
+        return;
+      }
+      user = {
+        id: user.id,
+        email: user.email,
+        type: user.type,
+        name: name,
+        location: location,
+        mobileNumber: mobileNumber,
+        sector: jobTitle
+      }
+
+      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('isLoggedIn', 'true')
       navigate('/dashboard/employee')
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
     }
   }
   return (

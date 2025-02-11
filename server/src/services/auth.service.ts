@@ -14,7 +14,7 @@ export interface User {
   email: string;
 }
 
-export const generateTokens = (user: User) => {
+export const generateTokens = (user: User) => { 
   const accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
   const refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
@@ -43,20 +43,11 @@ export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, salt);
 };
 
-export const comparePasswords = async (
-  password: string,
-  hashedPassword: string
-): Promise<boolean> => {
+export const comparePasswords = async ( password: string, hashedPassword: string ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
 
-export const createOrUpdateSession = async (
-  userId: string,
-  userType: "employer" | "employee",
-  email: string,
-  userAgent: string,
-  expiresAt: Date
-) => {
+export const createOrUpdateSession = async ( userId: string, userType: "employer" | "employee", email: string, userAgent: string, expiresAt: Date ) => {
   const user: User = { id: userId, userType, email };
   const { accessToken, refreshToken } = generateTokens(user);
 
@@ -67,7 +58,6 @@ export const createOrUpdateSession = async (
     .limit(1);
 
   if (existingSession.length > 0) {
-    // Update existing session
     await db
       .update(session)
       .set({
@@ -78,7 +68,6 @@ export const createOrUpdateSession = async (
       })
       .where(eq(session.email, email));
   } else {
-    // Create new session
     await db.insert(session).values({
       userId,
       userType,
@@ -91,10 +80,7 @@ export const createOrUpdateSession = async (
   return { accessToken, refreshToken };
 };
 
-export const refreshAccessToken = async (
-  refreshToken: string,
-  userAgent: string
-) => {
+export const refreshAccessToken = async ( refreshToken: string, userAgent: string ) => {
   const user = verifyRefreshToken(refreshToken);
   if (!user) {
     throw new Error("Invalid refresh token");

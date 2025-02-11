@@ -58,8 +58,8 @@ export const getEmployerProfile = async (req: Request, res: Response) => {
 };
 
 export const updateEmployerProfile = async (req: Request, res: Response) => {
-  const employerId = req.user?.id;
-  const { name, mobileNumber, location, industry } = req.body;
+  //const employerId = req.user?.id;
+  const { employerId, name, mobileNumber, location, industry } = req.body;
 
   if (!employerId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -71,10 +71,9 @@ export const updateEmployerProfile = async (req: Request, res: Response) => {
       .set({ name, mobileNumber, location, industry })
       .where(eq(employer.id, employerId));
 
-    res.json({ message: "Profile updated successfully" });
+    res.json({ isSuccess: true, message: "Profile updated successfully" });
   } catch (error) {
-    console.error("Error updating employer profile:", error);
-    res.status(400).json({ error: "Profile update failed" });
+    res.status(400).json({ isSuccess: true, message: "Error during registration", error: error });
   }
 };
 

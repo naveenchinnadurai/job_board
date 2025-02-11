@@ -7,9 +7,13 @@ import { Button } from '../components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form'
 import { Input } from '../components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
+import { useNavigate } from 'react-router-dom'
+import { User } from '../lib/types'
 import api from '../lib/api'
 
 export default function CompanyOnBoarding() {
+  const navigate = useNavigate()
+
   const companyFormSchema = z.object({
     name: z.string().min(1, { message: 'Company name cannot be empty' }),
     location: z.string().min(1, { message: 'Location is required' }),
@@ -30,9 +34,38 @@ export default function CompanyOnBoarding() {
 
   async function onSubmit(values: z.infer<typeof companyFormSchema>) {
     console.log(values)
-    const res=await api.put('/employer/profile',{
-      
-    })
+    const { location, mobileNumber, name, sector } = values
+    let user:User=JSON.parse(localStorage.getItem("user") || '{}')
+    try {
+      const res = await api.put('http://localhost:5000/api/v1/employer/profile', {
+        employerId: user.id,
+        location,
+        mobileNumber,
+        name,
+        industry: sector
+      })
+      console.log(res)
+      if (!res.data.isSuccess) {
+        console.log(res.data.message)
+        return;
+      }
+      user = {
+        id: user.id,
+        email: user.email,
+        type: user.type,
+        name: name,
+        location: location,
+        mobileNumber: mobileNumber,
+        sector: sector
+      }
+
+      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('isLoggedIn', 'true')
+      navigate('/dashboard/employer')
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
+    }
   }
   return (
     <>

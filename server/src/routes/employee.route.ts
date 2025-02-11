@@ -9,6 +9,6 @@ router.post("/register", registerEmployee);
 
 // Protected routes
 router.get("/profile", authenticateToken, getEmployeeProfile);
-router.put("/profile", authenticateToken, updateEmployeeProfile);
+router.put("/profile", updateEmployeeProfile);
 
 export default router;

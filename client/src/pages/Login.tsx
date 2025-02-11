@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { useAuth } from '../auth/AuthContext'
 import { LogoWithText } from '../components/logo'
@@ -22,7 +22,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
-  const navigate = useNavigate()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -34,14 +33,10 @@ export default function Login() {
 
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true)
+    console.log(values)
     try {
       await login(values.email, values.password)
       console.log('Logged in successfully')
-      if (type === "employee") {
-        navigate('/dashboard/employee')
-      } else if (type === "employer") {
-        navigate('/dashboard/employer')
-      }
     } catch (error) {
       console.error('Login error:', error)
       console.log('Failed to log in. Please check your credentials.')

@@ -9,16 +9,7 @@ export const createJob = async (req: Request, res: Response) => {
   if (!employerId) {
     return res.json({ isSuccess: false, message: "Unauthorized: Employer ID not found" });
   }
-
-  const {
-    title,
-    description,
-    location,
-    experience,
-    salary,
-    industry,
-    qualification,
-  } = req.body;
+  const { title, description, location, experience, salary, industry, qualification } = req.body;
 
   try {
     const newJob = await db
@@ -48,18 +39,17 @@ export const getJobs = async (req: Request, res: Response) => {
 };
 
 export const getJob = async (req: Request, res: Response) => {
-  const jobId = req.params.id;
+  const id = req.params.id;
   const jobDetails = await db
     .select()
     .from(job)
-    .where(eq(job.id, jobId))
-    .limit(1);
+    .where(eq(job.employerId, id))
 
   if (!jobDetails.length) {
     return res.status(404).json({ error: "Job not found" });
   }
 
-  res.json(jobDetails[0]);
+  res.json(jobDetails);
 };
 
 export const updateJob = async (req: Request, res: Response) => {
