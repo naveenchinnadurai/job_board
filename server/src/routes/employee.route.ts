@@ -1,6 +1,6 @@
 import express from "express";
 import { registerEmployee, getEmployeeProfile, updateEmployeeProfile, } from "../controllers/employee.controller";
-import { authenticateToken } from "../middleware/auth.middleware";
+import { authenticateEmployee } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/register", registerEmployee);
 
 // Protected routes
-router.get("/profile", authenticateToken, getEmployeeProfile);
-router.put("/profile", updateEmployeeProfile);
+router.get("/profile", authenticateEmployee, getEmployeeProfile);
+router.put("/profile", authenticateEmployee, updateEmployeeProfile);
 
 export default router;

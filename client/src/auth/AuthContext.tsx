@@ -2,6 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { JobType, User } from '../lib/types';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Toaster } from '../components/ui/toaster';
+import api, { fetchJobs } from '../lib/api';
+import { toast } from '../hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +24,7 @@ interface TokenInterface {
   refreshToken: string | null
 }
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
@@ -53,36 +57,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sector: userInfo.sector
       }
 
+      setUser(userInfo);
+
       localStorage.setItem('user', JSON.stringify(currUser))
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('tokens', JSON.stringify({ accessToken, refreshToken }))
-      
-      getJobs(userInfo.id);
 
-      if (userInfo.type === "employee") navigate('dashboard/employee')
-      else if (userInfo.type === "employer") navigate('/dashboard/employer')
+      const jobs = await fetchJobs(userInfo.id, userInfo.type);
+      if (jobs) {
+        setJobs(jobs);
+      }
+
+      navigate('dashboard')
+      toast({
+        title: "Logged In",
+      })
 
     } catch (error) {
-      console.error('Login error:', error)
-      throw error
+      toast({
+        title: "Login Error",
+        description: "Error during Logging In"
+      })
+      console.log(error);
     }
   }
 
   const logout = async () => {
     try {
       if (user) {
-        await axios.post('http://localhost:5000/api/v1/auth/logout', { sessionId: user.id })
+        await api.post('auth/logout')
+        navigate('/login')
       }
     } catch (error) {
-      console.error('Logout error:', error)
+      console.log(error)
     } finally {
       setUser(null)
       setTokens({
         accessToken: null,
         refreshToken: null
       })
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
+      localStorage.clear();
     }
   }
 
@@ -105,27 +119,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  useEffect(() => {
+    // Protecting Routes
+    const tokens = localStorage.getItem("tokens");
+    const userInfo = JSON.parse(localStorage.getItem('user') || '{}')
 
-  const getJobs = async (id:string) => {
-    if (user?.type == "employee") {
-      try {
-        const response = await axios.get('http://localhost:5000/api/v1/job',)
-        setJobs(response.data);
-        console.log(response.data)
-      } catch (error: any) {
-        console.log("error")
-      }
-    } else {
-      try {
-        console.log(user?.id)
-        const response = await axios.get(`http://localhost:5000/api/v1/job/${id}`,)
-        setJobs(response.data);
-        console.log(response.data)
-      } catch (error: any) {
-        console.log("error")
+    if (['/login', '/signup'].includes(location.pathname) && tokens && userInfo) {
+      navigate('/dashboard')
+    }
+
+    if (!tokens || !userInfo) {
+      if (location.pathname != "/signup") {
+        navigate("/login");
+        return;
       }
     }
-  }
+
+    const jobsLocalStorage = JSON.parse(localStorage.getItem('jobs') || '{}')
+
+    if (userInfo) setUser(userInfo)
+    if (jobsLocalStorage) setJobs(jobsLocalStorage)
+
+  }, [location.pathname])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -161,6 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ user, setIsLoggedIn, tokens, login, logout, refreshAccessToken, jobs, setJobs }}>
       {children}
+      <Toaster />
     </AuthContext.Provider>
   )
 }

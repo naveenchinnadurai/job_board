@@ -159,8 +159,7 @@ export const refreshToken = async (req: Request, res: Response) => {
   const userAgent = req.headers["user-agent"] || "";
 
   try {
-    const { accessToken, refreshToken: newRefreshToken } =
-      await refreshAccessToken(refreshToken, userAgent);
+    const { accessToken, refreshToken: newRefreshToken } = await refreshAccessToken(refreshToken, userAgent);
     res.json({ accessToken, refreshToken: newRefreshToken });
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -172,7 +171,11 @@ export const refreshToken = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-  const { sessionId } = req.body;
-  await db.delete(session).where(eq(session.id, sessionId));
-  res.json({ message: "Logged out successfully" });
+  const sessionId = req.user?.id;
+  if (sessionId) {
+    await db.delete(session).where(eq(session.userId, sessionId));
+    res.status(200).json({ message: "Logged out" });
+  } else {
+    res.status(400).json({ message: "Error when Logging out" });
+  }
 };

@@ -38,7 +38,6 @@ export default function CompanyOnBoarding() {
     let user:User=JSON.parse(localStorage.getItem("user") || '{}')
     try {
       const res = await api.put('http://localhost:5000/api/v1/employer/profile', {
-        employerId: user.id,
         location,
         mobileNumber,
         name,

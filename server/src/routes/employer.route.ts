@@ -1,12 +1,6 @@
 import express from "express";
-import {
-  registerEmployer,
-  getEmployerProfile,
-  updateEmployerProfile,
-  getJobApplications,
-  getAllJobsWithApplicationCounts,
-} from "../controllers/employer.controller";
-import { authenticateToken } from "../middleware/auth.middleware";
+import { registerEmployer, getEmployerProfile, updateEmployerProfile, getJobApplications, getAllJobsWithApplicationCounts, } from "../controllers/employer.controller";
+import { authenticateEmployer } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -14,9 +8,9 @@ const router = express.Router();
 router.post("/register", registerEmployer);
 
 // Protected routes
-router.get("/profile", authenticateToken, getEmployerProfile);
-router.put("/profile", updateEmployerProfile);
-router.get("/jobs/:jobId/applications", authenticateToken, getJobApplications);
-router.get("/jobs/count", authenticateToken, getAllJobsWithApplicationCounts);
+router.get("/profile", authenticateEmployer, getEmployerProfile);
+router.put("/profile", authenticateEmployer, updateEmployerProfile);
+router.get("/jobs/:jobId/applications", authenticateEmployer, getJobApplications);
+router.get("/jobs/count", authenticateEmployer, getAllJobsWithApplicationCounts);
 
 export default router;

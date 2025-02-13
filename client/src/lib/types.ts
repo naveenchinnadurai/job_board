@@ -8,14 +8,15 @@ export interface User {
   sector: string | null
 }
 
-export interface JobType{
+export interface JobType {
   id: string;
   employerId: string;
+  employerName: string;
   title: string;
   description: string;
   location: string;
   experience: string;
   salary: string;
   industry: string;
-  qualification: any; 
+  qualification: any;
 }

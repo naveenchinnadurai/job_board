@@ -34,7 +34,7 @@ export default function Register() {
   })
 
   async function onSubmit(values: z.infer<typeof registerFormSchema>) {
-    const { email, password, userType } = values
+    const { email, password, userType } = values;
     try {
       const res = await api.post('http://localhost:5000/api/v1/auth/signup', {
         email,
@@ -52,7 +52,7 @@ export default function Register() {
         type: res.data.user.type,
         name: null,
         location: null,
-        mobileNumber: null,
+        mobileNumber: null, 
         sector: null
       }
       

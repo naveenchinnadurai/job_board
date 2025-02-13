@@ -33,24 +33,22 @@ export const registerEmployer = async (req: Request, res: Response) => {
 
 export const getEmployerProfile = async (req: Request, res: Response) => {
   const employerId = req.user?.id;
-
-  if (!employerId) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
+  
   try {
-    const employerProfile = await db
-      .select()
-      .from(employer)
-      .where(eq(employer.id, employerId))
-      .limit(1);
+    if (employerId) {
+      const employerProfile = await db
+        .select()
+        .from(employer)
+        .where(eq(employer.id, employerId))
+        .limit(1);
 
-    if (!employerProfile.length) {
-      return res.status(404).json({ error: "Employer not found" });
+      if (!employerProfile.length) {
+        return res.status(404).json({ error: "Employer not found" });
+      }
+
+      const { password, ...profileWithoutPassword } = employerProfile[0];
+      res.json(profileWithoutPassword);
     }
-
-    const { password, ...profileWithoutPassword } = employerProfile[0];
-    res.json(profileWithoutPassword);
   } catch (error) {
     console.error("Error fetching employer profile:", error);
     res.status(500).json({ error: "Failed to fetch employer profile" });
@@ -58,22 +56,19 @@ export const getEmployerProfile = async (req: Request, res: Response) => {
 };
 
 export const updateEmployerProfile = async (req: Request, res: Response) => {
-  //const employerId = req.user?.id;
-  const { employerId, name, mobileNumber, location, industry } = req.body;
-
-  if (!employerId) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
+  const employerId = req.user?.id;
+  const { name, mobileNumber, location, industry } = req.body;
   try {
-    await db
-      .update(employer)
-      .set({ name, mobileNumber, location, industry })
-      .where(eq(employer.id, employerId));
+    if (employerId) {
+      await db
+        .update(employer)
+        .set({ name, mobileNumber, location, industry })
+        .where(eq(employer.id, employerId));
 
-    res.json({ isSuccess: true, message: "Profile updated successfully" });
+      res.status(200).json({ message: "Profile updated successfully" });
+    }
   } catch (error) {
-    res.status(400).json({ isSuccess: true, message: "Error during registration", error: error });
+    res.status(400).json({ message: "Error during registration", error: error });
   }
 };
 

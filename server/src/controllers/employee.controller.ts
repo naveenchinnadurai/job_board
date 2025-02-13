@@ -60,19 +60,21 @@ export const getEmployeeProfile = async (req: Request, res: Response) => {
 };
 
 export const updateEmployeeProfile = async (req: Request, res: Response) => {
-  //const employeeId = req.user?.id;
-  const { employeeId, name, mobileNumber, location, jobTitle } = req.body;
-  if (!employeeId) {
-    return res.status(401).json({ isSuccess: false, message: "Unauthorized" });
-  }
+  const employeeId = req.user?.id;
+  const { name, mobileNumber, location, jobTitle } = req.body;
 
   try {
-    const result = await db.update(employee).set({ name, jobTitle, mobileNumber, location }).where(eq(employee.id, employeeId));
+    if (employeeId) {
+      const result = await db
+        .update(employee)
+        .set({ name, jobTitle, mobileNumber, location })
+        .where(eq(employee.id, employeeId));
 
-    res.json({ isSuccess: true, message: "Profile updated successfully", user: result });
+      res.status(200).json({ message: "Profile updated successfully", user: result });
+    }
   } catch (error) {
     console.error("Error updating employer profile:", error);
-    res.json({ isSuccess: false, message: "Profile update failed" });
+    res.status(400).json({ error: "Profile update failed" });
   }
 };
 

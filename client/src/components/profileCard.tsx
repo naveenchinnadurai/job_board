@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from './ui/input';
 import { Pencil } from 'lucide-react';
 import { Button } from './ui/button';
+import api from '../lib/api';
+import { toast } from '../hooks/use-toast';
 
 function ProfileCard() {
     const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
@@ -17,7 +19,7 @@ function ProfileCard() {
         ["User Name", user.name || "User", "name"],
         ["Location", user.location || "Unknown", "location"],
         ["Mobile Number", user.mobileNumber || "Unknown", "mobileNumber"],
-        ["Job Title", user.sector || "Unknown", "sector"],
+        [user.type == "employee" ? "Job Title" : "Industry", user.sector || "Unknown", "sector"],
         ["Email", user.email || "Unknown", "email"],
     ];
 
@@ -29,9 +31,51 @@ function ProfileCard() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSave = () => {
-        setUser(formData);
-        setIsEditing(false);
+    const handleSave = async () => {
+        let data, url;
+        if (user.type == "employee") {
+            url = "/employee/profile/"
+            data = {
+                employeeId: user.id,
+                name: formData.name,
+                mobileNumber: formData.mobileNumber,
+                location: formData.location,
+                jobTitle: formData.sector
+            }
+        } else {
+            url = "/employer/profile/"
+            data = {
+                employerId: user.id,
+                name: formData.name,
+                mobileNumber: formData.mobileNumber,
+                location: formData.location,
+                industry: formData.sector
+            }
+        }
+        try {
+            const res = await api.put(url, data);
+            if (!res.status) {
+                toast({
+                    title: "Status",
+                    description: "Error Updating Profile"
+                })
+                return;
+            }
+            setUser(formData);
+            toast({
+                title: "Status",
+                description: "Profile Updated Succesfully"
+            })
+            console.log(formData)
+        } catch (error: any) {
+            console.log(error)
+            toast({
+                title: "Status",
+                description: "Error Updating Profile"
+            })
+        } finally {
+            setIsEditing(false);
+        }
     };
 
     return (
@@ -49,12 +93,14 @@ function ProfileCard() {
                 <div className='flex-1 flex flex-col gap-7'>
                     <h1 className='text-xl font-bold'>Profile</h1>
                     <div className='grid grid-cols-2 lg:grid-cols-3 gap-4'>
-                        {userDetails.map(([label, value], i) => (
-                            <div className='flex flex-col gap-2' key={i}>
-                                <Label className='text-sm font-semibold text-muted-foreground'>{label}</Label>
-                                <p className='text-sm'>{value}</p>
-                            </div>
-                        ))}
+                        {
+                            userDetails.map(([label, value], i) => (
+                                <div className='flex flex-col gap-2' key={i}>
+                                    <Label className='text-md font-semibold text-muted-foreground'>{label}</Label>
+                                    <p className='text-md'>{value}</p>
+                                </div>
+                            ))
+                        }
                     </div>
                 </div>
             </div>
@@ -66,15 +112,21 @@ function ProfileCard() {
                         <DialogTitle>Edit Profile</DialogTitle>
                     </DialogHeader>
                     <div className='grid gap-4'>
-                        {userDetails.map(([label, _, key]) => (
-                            <div key={key} className='flex flex-col gap-2'>
-                                <Label>{label}</Label>
-                                <Input type='text' name={key} value={formData[key] || ''} onChange={handleChange} />
-                            </div>
-                        ))}
+                        {
+                            userDetails.map(([label, _, key]) => {
+                                if (label != "Email") {
+                                    return (
+                                        <div key={key} className='flex flex-col gap-2'>
+                                            <Label>{label}</Label>
+                                            <Input type='text' name={key} value={formData[key] || ''} onChange={handleChange} />
+                                        </div>
+                                    )
+                                }
+                            })
+                        }
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleSave}>Save</Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -1,0 +1,1 @@
+ALTER TABLE "job" ALTER COLUMN "qualification" SET DATA TYPE text[];

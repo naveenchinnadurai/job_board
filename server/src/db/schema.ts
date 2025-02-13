@@ -37,13 +37,14 @@ export const job = pgTable(
     employerId: uuid("employer_id")
       .notNull()
       .references(() => employer.id),
+    employerName: text("employee_name").references(() => employer.name),
     title: text("title").unique().notNull(),
     description: text("description").notNull(),
     location: text("location").notNull(),
     experience: text("experience").notNull(),
     salary: text("salary").notNull(),
     industry: text("industry").notNull(),
-    qualification: text("qualification").notNull(),
+    qualification: text("qualification").array().notNull(),
   },
   (table) => {
     return {

@@ -1,27 +1,41 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useAuth } from '../../auth/AuthContext'
+import api from '../../lib/api'
+import { jobFormSchema } from '../../schema/jobSchema'
+import { Button } from '../ui/button'
+import { DialogClose } from '../ui/dialog'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
 import MultipleSelector, { Option } from '../ui/multiselect'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Textarea } from '../ui/textarea'
-import { Button } from '../ui/button'
-import { jobFormSchema } from '../../schema/jobSchema'
-import { DialogClose } from '../ui/dialog'
-import api from '../../lib/api'
+import { useToast } from '../../hooks/use-toast'
 
 interface FormProp {
+    id: string | undefined;
     description: string | undefined;
     experience: string | undefined,
     location: string | undefined,
     salary: string | undefined,
     sector: "Information Technology" | "Mechanical" | "Finance" | "Education" | "HealthCare" | undefined,
-    title: string | undefined
+    title: string | undefined,
+    method: "post" | "put"
 }
 
 
 function JobForm(props: FormProp) {
+    const { toast } = useToast()
+    const { user, jobs, setJobs } = useAuth();
+
+    if (user?.type != 'employer') {
+        toast({
+            title: "Unauthorized",
+            description: "You cannot Post or Edit a Job",
+        })
+        return;
+    }
 
     const QUALIFICATION: Option[] = [
         { label: 'BE', value: 'BE' },
@@ -47,21 +61,62 @@ function JobForm(props: FormProp) {
 
     async function jobOnSubmit(values: z.infer<typeof jobFormSchema>) {
         console.log(values)
-        const { title, description, location, experience, salary, qualifications } = values
+        const { title, description, location, experience, salary, qualifications } = values;
         const job = {
             title,
             description,
+            employerName: user?.name,
             location,
             experience,
             salary,
             industry: values.sector,
-            qualification:qualifications
+            qualification: qualifications.map(option => option.value)
         }
-        try{
-            const res=await api.post('job/',job)
-            console.log(res)
-        }catch (error){
-            console.log(error)
+        if (props.method == "post") {
+            try {
+                const res = await api.post('job/', job)
+                console.log(res)
+                if (!res.status) {
+                    toast({
+                        title: "eRRor",
+                        description: "Error Updating Job"
+                    })
+                    return;
+                }
+                setJobs(jobs?.concat(res.data.jobData))
+                toast({
+                    title: "Success",
+                    description: res.data.message,
+                })
+            } catch (error) {
+                console.log(error)
+                toast({
+                    title: "eRRor",
+                    description: "Error during posting new Job",
+                })
+            }
+        } else if (props.method == "put") {
+            try {
+                const res = await api.put(`job/${props.id}`, job)
+                console.log(res);
+                if (!res.status) {
+                    toast({
+                        title: "eRRor",
+                        description: "Error Updating Job"
+                    })
+                    return;
+                }
+                setJobs(jobs?.map((item) => (item.id === res.data.jobData.id ? res.data.jobData : item)));
+                toast({
+                    title: "Success",
+                    description: res.data.message,
+                })
+            } catch (error) {
+                toast({
+                    title: "eRRor",
+                    description: "Error During Updating Job Details",
+                })
+            }
         }
     }
     return (
@@ -213,7 +268,7 @@ function JobForm(props: FormProp) {
                                 />
                             </div>
                             <DialogClose>
-                                <Button type='submit' className=' mt-4'>Post Job</Button>
+                                <Button type='submit' className=' mt-4'>{props.method == "post" ? "Post Job" : "Update Job"}</Button>
                             </DialogClose>
                         </form>
                     </Form>

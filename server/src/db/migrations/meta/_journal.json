@@ -15,6 +15,20 @@
       "when": 1720008349259,
       "tag": "0001_tense_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739340878589,
+      "tag": "0002_past_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739351195892,
+      "tag": "0003_wealthy_kang",
+      "breakpoints": true
     }
   ]
 }

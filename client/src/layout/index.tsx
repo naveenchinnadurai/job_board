@@ -2,20 +2,20 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { ProtectedRoute } from '../auth/ProtectedRoute'
 import Navbar from '../components/navbar'
 import NotFound from '../pages/404'
-import CompanyDashboard from '../pages/CompanyDashboard'
+import Dashboard from '../pages/dashboard'
 import CompanyOnBoarding from '../pages/CompanyOnBoarding'
-import EmployeeDashboard from '../pages/EmployeeDashboard'
 import EmployeeOnBoarding from '../pages/EmployeeOnBoarding'
 import Login from '../pages/Login'
 import Privacy from '../pages/privacy'
 import Register from '../pages/Register'
 import Terms from '../pages/terms'
 import { useAuth } from '../auth/AuthContext'
+import ChatScreen from '../components/chatScreen'
 
 export default function Layout() {
   //const { isLoggedIn, navigate, type } = useAuth();
   const location = useLocation()
-  const routesWithNavbar = ['/dashboard/employer', '/dashboard/employee']
+  const routesWithNavbar = ['/dashboard']
   const showNavbar = routesWithNavbar.includes(location.pathname)
 
   return (
@@ -25,6 +25,7 @@ export default function Layout() {
         <Route path='/' element={<Login />} />
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<Register />} />
+        <Route path='/chat' element={<ChatScreen />} />
         <Route
           path='/onboarding/employer'
           element={
@@ -42,18 +43,10 @@ export default function Layout() {
           }
         />
         <Route
-          path='/dashboard/employer'
+          path='/dashboard/'
           element={
             <ProtectedRoute>
-              <CompanyDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/dashboard/employee'
-          element={
-            <ProtectedRoute>
-              <EmployeeDashboard />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
