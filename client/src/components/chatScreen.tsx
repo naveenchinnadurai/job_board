@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import api from "../lib/api";
 
 const sampleMessages = [
     { id: 1, sender: "employer", text: "Hello, how are you today?", time: "2025-02-13T10:00:00" },
@@ -12,7 +13,8 @@ export default function ChatScreen() {
     const [messages, setMessages] = useState(sampleMessages);
     const [newMessage, setNewMessage] = useState("");
 
-    const sendMessage = () => {
+
+    const sendMessage = async () => {
         if (!newMessage.trim()) return;
         const message = {
             id: messages.length + 1,

@@ -14,13 +14,13 @@ import { Textarea } from '../ui/textarea'
 import { useToast } from '../../hooks/use-toast'
 
 interface FormProp {
-    id: string | undefined;
-    description: string | undefined;
-    experience: string | undefined,
-    location: string | undefined,
-    salary: string | undefined,
-    sector: "Information Technology" | "Mechanical" | "Finance" | "Education" | "HealthCare" | undefined,
-    title: string | undefined,
+    id?: string;
+    description?: string;
+    experience?: string;
+    location?: string;
+    salary?: string;
+    sector?: "Information Technology" | "Mechanical" | "Finance" | "Education" | "HealthCare";
+    title?: string;
     method: "post" | "put"
 }
 

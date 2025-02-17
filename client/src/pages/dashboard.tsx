@@ -28,7 +28,7 @@ export default function Dashboard() {
     }
   }
   return (
-    <div className='container pt-20'>
+    <div className='container pt-24'>
       <ProfileCard />
       <div className='flex justify-between items-center my-5'>
         <div className="flex gap-1 items-center justify-center">
@@ -58,16 +58,7 @@ export default function Dashboard() {
                   <DialogTitle className='mb-4'>New job</DialogTitle>
                   <DialogDescription>Add New Job. Provide Necessary Details.</DialogDescription>
                 </DialogHeader>
-                <JobForm
-                  id={undefined}
-                  description={undefined}
-                  experience={undefined}
-                  location={undefined}
-                  salary={undefined}
-                  sector={undefined}
-                  title={undefined}
-                  method="post"
-                />
+                <JobForm method="post" />
                 <DialogFooter className='sm:justify-start'></DialogFooter>
               </DialogContent>
             </Dialog>

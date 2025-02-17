@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../db";
 import { application, employee, job } from "../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, ilike } from "drizzle-orm";
 import { hashPassword } from "../services/auth.service";
 
 export const registerEmployee = async (req: Request, res: Response) => {
@@ -56,6 +56,23 @@ export const getEmployeeProfile = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching employer profile:", error);
     res.status(500).json({ error: "Failed to fetch employer profile" });
+  }
+};
+
+export const getEmployeeByName = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.query;
+    console.log("name")
+    if (!name) {
+      return res.status(400).json({ error: "Name query parameter is required" });
+    }
+
+    const employees = await db.select().from(employee).where(ilike(employee.name, `%${name}%`));
+
+    res.status(200).json({ employees });
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

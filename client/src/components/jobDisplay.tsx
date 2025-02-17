@@ -45,7 +45,9 @@ function JobCard(props: JobType) {
             <div className='flex w-full'>
                 <CardHeader className='w-11/12'>
                     <CardTitle className='text-2xl'>{props.title}</CardTitle>
-                    <CardDescription className='text-lg'>{props.employerName}</CardDescription>
+                    {
+                        user?.type == "employee" && <CardDescription className='text-lg'>{props.employerName}</CardDescription>
+                    }
                     <CardDescription className='line-clamp-2'>{shorten(props.description, 20)}</CardDescription>
                     <CardFooter className='p-0 !mt-6'>
                         <div className='flex flex-wrap w-full justify-between'>
